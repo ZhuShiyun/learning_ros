@@ -1,0 +1,8 @@
+prefix=/home/xianzhix/new_ws/devel
+
+Name: bird_pkg
+Description: Description of bird_pkg
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

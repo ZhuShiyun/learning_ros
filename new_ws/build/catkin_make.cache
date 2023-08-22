@@ -1,0 +1,2 @@
+bird_pkg:learning_parameter:learning_service:learning_topic:plant_pkg:test_pkg
+-DCATKIN_DEVEL_PREFIX=/home/xianzhix/new_ws/devel -DCMAKE_INSTALL_PREFIX=/home/xianzhix/new_ws/install -G Unix Makefiles

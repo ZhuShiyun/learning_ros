@@ -1,0 +1,11 @@
+<launch>
+
+  <node pkg = "bird_pkg" type = "bird_node" name = "bird_node" />
+
+// launch-prefix = "gnome-terminal -e" 意思是使用一个新的终端运行这个节点。
+  <node pkg = "bird_pkg" type = "cockatoo_node" name = "cockatoo_node" launch-prefix = "gnome-terminal -e" />
+
+  <node pkg = "plant_pkg" type = "tree_node" name = "tree_node" output = "screen"/>
+
+
+</launch>

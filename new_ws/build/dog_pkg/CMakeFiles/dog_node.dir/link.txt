@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/dog_node.dir/src/dog_node.cpp.o  -o /home/xianzhix/new_ws/devel/lib/dog_pkg/dog_node 
