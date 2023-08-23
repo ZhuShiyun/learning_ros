@@ -131,11 +131,13 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/xianzhix/new_ws/build/gtest/cmake_install.cmake")
+  include("/home/xianzhix/new_ws/build/learning_launch/cmake_install.cmake")
   include("/home/xianzhix/new_ws/build/bird_pkg/cmake_install.cmake")
   include("/home/xianzhix/new_ws/build/learning_parameter/cmake_install.cmake")
   include("/home/xianzhix/new_ws/build/plant_pkg/cmake_install.cmake")
   include("/home/xianzhix/new_ws/build/test_pkg/cmake_install.cmake")
   include("/home/xianzhix/new_ws/build/learning_service/cmake_install.cmake")
+  include("/home/xianzhix/new_ws/build/learning_tf/cmake_install.cmake")
   include("/home/xianzhix/new_ws/build/learning_topic/cmake_install.cmake")
 
 endif()
