@@ -1,3 +1,15 @@
+# ROS笔记
+
+---
+
+资料来源：
+
+> 古月居《ROS入门21讲》;
+
+---
+
+
+
 ## Topic 主题/话题
 
 ### 话题消息的定义与使用
@@ -6,10 +18,10 @@
 
 - 定义msg文件;
 
-```
-cd catkin_ws/src/learning_topic
-mkdir msg
-touch Person.msg
+```shell
+$ cd catkin_ws/src/learning_topic
+$ mkdir msg
+$ touch Person.msg
 ```
 
 ​		在Person.msg中输入：注意是**uint**不是unit
@@ -45,7 +57,7 @@ uint female = 2
 
     目的：用来将.msg文件编译成对应的程序文件
 
-    ```
+    ```cmake
     add_message_files(FILES Person.msg)  #会将Person.msg作为消息接口
     generate_messages(DEPENDENCIES std_msgs) #确定编译前者时依赖的包
     ```
@@ -54,7 +66,7 @@ uint female = 2
 
     目的：创建运行的依赖，对应package.xml中的执行依赖
 
-    ```python
+    ```cmake
     catkin_package(
     #  INCLUDE_DIRS include
     #  LIBRARIES learning_topic
@@ -65,9 +77,9 @@ uint female = 2
 
 - 编译
 
-  ```
-  cd catkin_ws
-  catkin_make
+  ```shell
+  $ cd ~/catkin_ws
+  $ catkin_make
   ```
 
   之后会在~/catkin_ws/devel/include/learning_topic内看到Person.h
@@ -158,7 +170,7 @@ uint female = 2
   >
   > 添加依赖项。
 
-```
+```cmake
 add_executable(person_publisher src/person_publisher.cpp)
 target_link_libraries(person_publisher${catkin_LIBRARIES})
 add_dependencies(person_publisher ${PROJECT_NAME}_generate_messages_cpp)
@@ -170,13 +182,13 @@ add_dependencies(person_subscriber ${PROJECT_NAME}_generate_messages_cpp)
 
 - 编译运行
 
-  ```
-  cd ~/catkin_ws
-  catkin_make
+  ```shell
+  $ cd ~/catkin_ws
+  $ catkin_make
   # 没在bashrc中配置的话记得source
-  roscore
-  rosrun learning_topic person_subscriber
-  rosrun learning_topic person_publisher
+  $ roscore
+  $ rosrun learning_topic person_subscriber
+  $ rosrun learning_topic person_publisher
   ```
 
 ------
@@ -185,16 +197,16 @@ add_dependencies(person_subscriber ${PROJECT_NAME}_generate_messages_cpp)
 
 创建功能包：
 
-```
-cd ~/catkin_ws/src
-catkin_create_pkg learning_service roscpp rospy std_msgs geometry_msgs turtlesim
+```shell
+$ cd ~/catkin_ws/src
+$ catkin_create_pkg learning_service roscpp rospy std_msgs geometry_msgs turtlesim
 ```
 
 ### 客户端 Client
 
-```
-cd ~/catkin_ws/src/learning_service/src
-touch turtle_spawn.cpp
+```shell
+$ cd ~/catkin_ws/src/learning_service/src
+$ touch turtle_spawn.cpp
 ```
 
 如何实现一个客户端：
@@ -249,7 +261,7 @@ int main(int argc, char *argv[]) {
 >
 > 设置链接库;
 
-```
+```cmake
 add_executable(turtle_spawn src/turtle_spawn.cpp)
 target_link_libraries(turtle_spawn
   ${catkin_LIBRARIES}
@@ -258,27 +270,27 @@ target_link_libraries(turtle_spawn
 
 编译：
 
-```
-cd ~/catkin_ws
-catkin_make
+```shell
+$ cd ~/catkin_ws
+$ catkin_make
 ```
 
 即可在~/catkin_ws/devel/lib/learning_service中看到编译生成的可执行文件turtle_spawn
 
-```
-source devel/setup.bash
-roscore
-rosrun turtlesim turtlesim_node
-rosrun learning_service turtle_spawn
+```shell
+$ source devel/setup.bash
+$ roscore
+$ rosrun turtlesim turtlesim_node
+$ rosrun learning_service turtle_spawn
 ```
 
 
 
 ### 服务端 Server
 
-```
-cd ~/catkin_ws/src/learning_service/src
-touch turtle_command_server.cpp
+```shell
+$ cd ~/catkin_ws/src/learning_service/src
+$ touch turtle_command_server.cpp
 ```
 
 如何实现一个服务器
@@ -362,21 +374,21 @@ int main(int argc, char *argv[]) {
 >
 > 设置链接库。
 
-```
+```cmake
 add_executable(turtle_command_server src/turtle_command_server.cpp)
 target_link_libraries(turtle_command_server ${catkin_LIBRARIES})
 ```
 
 编译并运行服务器：
 
-```
-cd ~/catkin_ws
-catkin_make
-source devel/setup.bash
-roscore
-rosrun turtlesim turtlesim_node
-rosrun learning_service turtle_command_server
-rosservice call /turtle_command "{}"
+```shell
+$ cd ~/catkin_ws
+$ catkin_make
+$ source devel/setup.bash
+$ roscore
+$ rosrun turtlesim turtlesim_node
+$ rosrun learning_service turtle_command_server
+$ rosservice call /turtle_command "{}"
 ```
 
 ### 服务数据的定义和使用
@@ -435,11 +447,11 @@ string result
 
 (中间省略，链接：【【古月居】古月·ROS入门21讲 | 一学就会的ROS机器人入门教程】 【精准空降到 07:19】 https://www.bilibili.com/video/BV1zt411G7Vn/?p=15&share_source=copy_web&vd_source=ce7db4602809160957ede06f23353169&t=439 )
 
-
+#### 如何调用自定义服务数据
 
 编译并运行 Client和Server:
 
-```
+```shell
 $ cd ~/catkin_ws
 $ catkin_make
 $ source devel/setup.bash
@@ -487,7 +499,187 @@ $ catkin_create_pkg learning_parameter roscpp rospy std_srvs
 
   $ rosparam delete param_key
 
-**YAML参数文件**（/ˈjæməl/，尾音类似*camel*骆驼, "Yet Another Markup Language"）是一个可读性高，用来表达数据[序列化](https://baike.baidu.com/item/序列化?fromModule=lemma_inlink)的格式。
+### **YAML参数文件**
+
+（/ˈjæməl/，尾音类似*camel*骆驼, "Yet Another Markup Language"）是一个可读性高，用来表达数据[序列化](https://baike.baidu.com/item/序列化?fromModule=lemma_inlink)的格式。
+
+```yaml
+rosdistro: 'melodic
+
+  '
+roslaunch:
+  uris: {host_xxz__33509: 'http://xxz:33509/'}
+rosversion: '1.14.13
+
+  '
+run_id: d361776a-42e8-11ee-a791-3c91802f7611
+turtlesim: {background_b: 255, background_g: 0, background_r: 192}
+```
+
+**例1.** 修改turtle背景-使用rosparam命令行：
+
+```shell
+$ rosparam set /turtlesim/background_r 192
+$ rosparam set /turtlesim/background_g 0
+$ rosparam set /turtlesim/background_b 255
+$ rosservice call /clear "{}" 
+```
+
+**例2.** 修改turtle背景-使用YAML文件：
+
+```shell
+$ rosparam dump param.yaml  # 保存参数到文件
+$ rosparam load param.yaml 
+$ rosservice call /clear "{}" 
+```
+
+### 如何设置/获取参数：C++实现
+
+> 初始化ROS节点;
+>
+> get获取参数;
+>
+> set设置参数。
+
+以turtle为例：
+
+```c++
+/**
+ * 该例程设置/读取海龟例程中的参数
+ */
+#include <ros/ros.h>
+#include <std_srvs/Empty.h>
+
+#include <string>
+
+int main(int argc, char **argv) {
+  int red, green, blue;
+
+  // ROS节点初始化
+  ros::init(argc, argv, "parameter_config");
+
+  // 创建节点句柄
+  ros::NodeHandle node;
+
+  // 读取背景颜色参数
+  ros::param::get("/turtlesim/background_r", red);
+  ros::param::get("/turtlesim/background_g", green);
+  ros::param::get("/turtlesim/background_b", blue);
+
+  ROS_INFO("Get Backgroud Color[%d, %d, %d]", red, green, blue);
+
+  // 设置背景颜色参数
+  ros::param::set("/turtlesim/background_r", 255);
+  ros::param::set("/turtlesim/background_g", 255);
+  ros::param::set("/turtlesim/background_b", 255);
+
+  ROS_INFO("Set Backgroud Color[255, 255, 255]");
+
+  // 读取背景颜色参数
+  ros::param::get("/turtlesim/background_r", red);
+  ros::param::get("/turtlesim/background_g", green);
+  ros::param::get("/turtlesim/background_b", blue);
+
+  ROS_INFO("Re-get Backgroud Color[%d, %d, %d]", red, green, blue);
+
+  // 调用服务，刷新背景颜色
+  ros::service::waitForService("/clear");
+  ros::ServiceClient clear_background =
+      node.serviceClient<std_srvs::Empty>("/clear");
+  std_srvs::Empty srv;
+  clear_background.call(srv);
+
+  sleep(1);
+
+  return 0;
+}
+```
+
+配置CMakeLists.txt
+
+```cmake
+add_executable(parameter_config src/parameter_config.cpp)
+target_link_libraries(parameter_config
+  ${catkin_LIBRARIES}
+)
+```
+
+编译并运行发布者：
+
+```shell
+$ cd ~/catkin_ws
+$ catkin_make
+$ source devel/setup.bash
+$ roscore
+$ rosrun turtlesim turtlesim_node
+$ rosrun learning_parameter parameter_config
+```
+
+
+
+---
+
+## ROS中的坐标管理系统 - TF功能包
+
+TF: transfer
+
+**工具一：**`$ rosrun tf view_frames`
+
+例：turtle跟随实验
+
+```shell
+$ sudo apt-get install ros-melodic-turtle-tf
+$ roslaunch turtle_tf turtle_tf_demo.launch
+$ rosrun turtlesim turtle_teleop_key
+$ rosrun tf view_frames
+```
+
+- 会在主目录下生成一个frames.pdf
+
+**工具二：**`$ rosrun tf tf_echo turtle1 turtle2`
+
+- 可以查看两个turtle的坐标关系。
+
+**工具三：可视化工具：**  `$ rosrun rviz rviz -d rospack find turtle_tf /rviz/turtle_rviz.rviz`
+
+- 调出**RViz**
+
+- 把**Displays**里的**Fixed Frame**中的设置改成**world**
+
+## Actionlib
+
+> From ros.org
+
+[actionlib_tutorials](https://wiki.ros.org/actionlib_tutorials)
+
+- [Writing a Simple Action Server using the Execute Callback](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionServer%28ExecuteCallbackMethod%29#CA-4489f75655c29f8fd70e22d2b43906c08f386f4e_1)
+- [Writing a Simple Action Client](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionClient)
+
+按教程操作后，跑一下`$ rostopic echo /fibonacci/feedback`可以看到feedback里包裹的内容，部分如下：
+
+```
+---
+header: 
+  seq: 79
+  stamp: 
+    secs: 1692956026
+    nsecs: 637127295
+  frame_id: ''
+status: 
+  goal_id: 
+    stamp: 
+      secs: 1692956007
+      nsecs: 636301473
+    id: "/test_fibonacci-1-1692956007.636301473"
+  status: 1
+  text: "This goal has been accepted by the simple action server"
+feedback: 
+  sequence: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946]
+---
+
+```
+
+也可以用rostopic查看一下然后找找
 
 ------
 
@@ -495,7 +687,7 @@ $ catkin_create_pkg learning_parameter roscpp rospy std_srvs
 
 Launch文件：通过XML文件实现多节点的配置和启动（可自动启动ROS Master）
 
-Launch文件j基础语法
+Launch文件基础语法
 
 ```
 <launch>
@@ -523,3 +715,28 @@ gedit simple.launch
 roslaunch launch simple.launch
 ```
 
+## 彩蛋内容1：学完21讲之后的路线
+
+建议一-阅读经典T_T(真的可以读下来吗)
+
+*此处省略经典尊名。*
+
+建议二-练手小项目：
+
+1. TurtleBot: https://wiki.ros.org/Robots/TurtleBot
+2. Husky: https://wiki.ros.org/Robots/Husky
+3. 一起从0手写URDF模型
+4. 其他，如GitHub上的SmartCar等
+
+建议三-找个真家伙
+
+*拼个小车什么的*
+
+建议四-找个方向挖一挖：
+
+机器人学四个核心领域（卡大）：
+
+- 感知：视觉传感器、图像传感器、触觉和力、惯导等。
+- 认知：人工智能、知识表达、规划、任务调度、机器学习等。
+- 行为：运动动力学、控制、manipulation和locomotion等。
+- 数学基础：最优估计、微分几何、计算几何、运筹学等。
