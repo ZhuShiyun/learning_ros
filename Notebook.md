@@ -4,7 +4,6 @@
 
 > 古月居《ROS入门21讲》;
 
-
 ## Topic 主题/话题
 
 ### 话题消息的定义与使用
@@ -57,7 +56,7 @@ uint female = 2
     generate_messages(DEPENDENCIES std_msgs) #确定编译前者时依赖的包
     ```
 
-  -  将catkin specific configuration中catkin_package(...)内的CATKIN_DEPENDS前面的注释打开，改成这样：
+  - 将catkin specific configuration中catkin_package(...)内的CATKIN_DEPENDS前面的注释打开，改成这样：
 
     目的：创建运行的依赖，对应package.xml中的执行依赖
 
@@ -641,14 +640,52 @@ $ rosrun tf view_frames
 
 - 把**Displays**里的**Fixed Frame**中的设置改成**world**
 
-## Actionlib
+## Actionlib 动作
 
 > From ros.org
 
-[actionlib_tutorials](https://wiki.ros.org/actionlib_tutorials)
+### **[actionlib_tutorials](https://wiki.ros.org/actionlib_tutorials)**
 
-- [Writing a Simple Action Server using the Execute Callback](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionServer%28ExecuteCallbackMethod%29#CA-4489f75655c29f8fd70e22d2b43906c08f386f4e_1)
-- [Writing a Simple Action Client](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionClient)
+- Begineer
+
+  - [Writing a Simple Action Server using the Execute Callback](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionServer%28ExecuteCallbackMethod%29#CA-4489f75655c29f8fd70e22d2b43906c08f386f4e_1)
+
+  - [Writing a Simple Action Client](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionClient)
+
+- Intermediate
+
+  - [Writing a Simple Action Server using the Goal Callback Method](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionServer(GoalCallbackMethod))
+  - [Writing a Threaded Simple Action Client](https://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionClient(Threaded))
+  - [Running an Action Server and Client with Other Nodes](https://wiki.ros.org/actionlib_tutorials/Tutorials/RunningServerAndClientWithNodes)  ***没搞懂***
+
+- Advanced
+
+  - [Writing a Callback Based SimpleActionClient](https://wiki.ros.org/actionlib_tutorials/Tutorials/Writing a Callback Based Simple Action Client)  ***也没搞懂***
+
+
+
+### .action文件结构
+
+Goal(目标), Feedback(反馈), Result(结果)，例如：
+
+```cmake
+#goal definition
+int32 samples
+---
+#result definition
+float32 mean
+float32 std_dev
+---
+#feedback
+int32 sample
+float32 data
+float32 mean
+float32 std_dev
+```
+
+
+
+
 
 按教程操作后，跑一下`$ rostopic echo /fibonacci/feedback`可以看到feedback里包裹的内容，部分如下：
 
@@ -731,7 +768,8 @@ roslaunch launch simple.launch
 
 机器人学四个核心领域（卡大）：
 
-- 感知：视觉传感器、图像传感器、触觉和力、惯导等。
+- 感知：视觉传感器、图像传感器、触觉和力传感器、惯导等。
 - 认知：人工智能、知识表达、规划、任务调度、机器学习等。
 - 行为：运动动力学、控制、manipulation和locomotion等。
 - 数学基础：最优估计、微分几何、计算几何、运筹学等。
+
