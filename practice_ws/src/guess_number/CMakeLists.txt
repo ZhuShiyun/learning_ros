@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(guess_number)
 
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -11,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,6 +75,7 @@ find_package(catkin REQUIRED COMPONENTS
 #   std_msgs
 # )
 
+
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
 ################################################
@@ -93,6 +96,21 @@ find_package(catkin REQUIRED COMPONENTS
 #   cfg/DynReconf2.cfg
 # )
 
+# add_message_files(
+#   FILES
+#   Guess.msg
+# )
+
+add_service_files(
+  FILES
+  GuessNumber.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -106,6 +124,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES guess_number
 #  CATKIN_DEPENDS roscpp rospy std_msgs
+CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -149,6 +168,25 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+# add_executable(guess_number_server src/guess_number_server.cpp)
+# target_link_libraries(guess_number_server ${catkin_LIBRARIES})
+# add_dependencies(guess_number_server guess_number_generate_messages_cpp)
+
+# add_executable(guess_number_client src/guess_number_client.cpp)
+# target_link_libraries(guess_number_client ${catkin_LIBRARIES})
+# add_dependencies(guess_number_client guess_number_generate_messages_cpp)
+
+add_executable(guess_number_client src/guess_number_client.cpp)
+target_link_libraries(guess_number_client
+  ${catkin_LIBRARIES}
+)
+add_dependencies(guess_number_client ${PROJECT_NAME}_gencpp)
+
+add_executable(guess_number_server src/guess_number_server.cpp)
+target_link_libraries(guess_number_server
+  ${catkin_LIBRARIES}
+)
+add_dependencies(guess_number_server ${PROJECT_NAME}_gencpp)
 
 #############
 ## Install ##
