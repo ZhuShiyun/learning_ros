@@ -1,0 +1,6 @@
+# GuessNumber.srv
+int32 guess
+---
+bool is_correct
+string message
+
