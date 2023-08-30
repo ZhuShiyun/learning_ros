@@ -1,0 +1,4 @@
+#GetPrime.srv
+int32 ipt #input
+---
+int32[] primes
