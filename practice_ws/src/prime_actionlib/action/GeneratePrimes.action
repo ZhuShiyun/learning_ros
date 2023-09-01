@@ -1,0 +1,7 @@
+# # GeneratePrimes.action
+int32 max_number
+---
+int32[] primes
+---
+float32 percentage
+
