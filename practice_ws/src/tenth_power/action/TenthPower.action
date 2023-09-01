@@ -1,0 +1,9 @@
+## TenthPower.action
+#goal
+int32 input_number
+---
+#result
+int32[] output_number
+---
+#feedback
+float32 percentage
