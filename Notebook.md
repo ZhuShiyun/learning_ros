@@ -18,7 +18,7 @@ $ mkdir msg
 $ touch Person.msg
 ```
 
-​		在Person.msg中输入：注意是**uint**不是unit
+		在Person.msg中输入：注意是**uint**不是unit
 
 ```html
 string name
@@ -662,9 +662,21 @@ $ rosrun tf view_frames
 
   - [Writing a Callback Based SimpleActionClient](https://wiki.ros.org/actionlib_tutorials/Tutorials/Writing a Callback Based Simple Action Client)  ***也没搞懂***
 
+### Action通信接口图解：
+
+![](https://img-blog.csdnimg.cn/3841225ccae0484eb22d779cdfdb7c12.png)
+
+建包：
+
+注：官网的[教程](https://wiki.ros.org/cn/actionlib_tutorials/Tutorials)没加message_runtime, 但我这边好像不加不行。。
+
+```shell
+$ catkin_create_pkg actionlib_tutorial rospy roscpp actionlib actionlib_msgs message_generation std_msgs message_runtime
+```
 
 
-### .action文件结构
+
+### .action文件结构：
 
 Goal(目标), Feedback(反馈), Result(结果)，例如：
 
@@ -682,10 +694,6 @@ float32 data
 float32 mean
 float32 std_dev
 ```
-
-
-
-
 
 按教程操作后，跑一下`$ rostopic echo /fibonacci/feedback`可以看到feedback里包裹的内容，部分如下：
 
@@ -712,6 +720,102 @@ feedback:
 ```
 
 也可以用rostopic查看一下然后找找
+
+### 如何写Action服务器
+
+服务端负责执行Action请求，并发送反馈和结果给客户端。下面是服务端的示例代码：
+
+```C++
+//需要替换your_package和YourAction为实际Action消息的包名和消息类型。
+#include <ros/ros.h>
+#include <actionlib/server/simple_action_server.h>
+#include <your_package/YourAction.h> // 替换为你的Action消息类型
+
+class YourActionServer {
+public:
+  YourActionServer(ros::NodeHandle nh, std::string name)
+    : nh_(nh), as_(nh_, name, boost::bind(&YourActionServer::executeCB, this, _1), false), action_name_(name) {
+    as_.start();
+  }
+
+  void executeCB(const your_package::YourGoalConstPtr& goal) {
+    // 执行Action任务的代码放在这里
+    // 可以通过goal对象获取客户端发送的目标信息
+
+    // 在执行过程中发送反馈（feedback）
+    your_package::YourFeedback feedback;
+    feedback.status = "Executing...";
+    as_.publishFeedback(feedback);
+
+    // 在任务完成后发送结果（result）
+    your_package::YourResult result;
+    result.success = true;
+    result.message = "Task completed successfully";
+    as_.setSucceeded(result);
+  }
+
+private:
+  ros::NodeHandle nh_;
+  actionlib::SimpleActionServer<your_package::YourAction> as_;
+  std::string action_name_;
+};
+
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "your_action_server");
+  ros::NodeHandle nh;
+
+  YourActionServer server(nh, "your_action");
+  ros::spin();
+
+  return 0;
+}
+
+```
+
+### 如何写Action客户端
+
+客户端用于向服务端发送Action请求，并接收反馈和结果。下面是客户端的示例代码：
+
+```c++
+// 需要替换your_package和YourAction为的实际Action消息的包名和消息类型，还可以根据需要设置目标参数。
+#include <ros/ros.h>
+#include <actionlib/client/simple_action_client.h>
+#include <your_package/YourAction.h> // 替换为你的Action消息类型
+
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "your_action_client");
+  ros::NodeHandle nh;
+
+  // 创建Action客户端
+  actionlib::SimpleActionClient<your_package::YourAction> client("your_action", true);
+
+  // 等待Action服务器启动
+  ROS_INFO("Waiting for action server to start...");
+  client.waitForServer();
+
+  // 创建Action目标
+  your_package::YourGoal goal;
+  goal.target = 42; // 设置目标参数
+
+  // 发送Action目标并等待结果
+  client.sendGoal(goal);
+
+  // 等待Action执行完成
+  client.waitForResult();
+
+  // 处理Action的结果
+  if (client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+    ROS_INFO("Action completed successfully: %s", client.getResult()->message.c_str());
+  } else {
+    ROS_ERROR("Action did not complete successfully");
+  }
+
+  return 0;
+}
+
+```
+
+
 
 ------
 
@@ -772,4 +876,3 @@ roslaunch launch simple.launch
 - 认知：人工智能、知识表达、规划、任务调度、机器学习等。
 - 行为：运动动力学、控制、manipulation和locomotion等。
 - 数学基础：最优估计、微分几何、计算几何、运筹学等。
-
