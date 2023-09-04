@@ -3,6 +3,8 @@
 资料来源：
 
 > 古月居《ROS入门21讲》;
+>
+> tf部分把tf1换成了tf2;
 
 ## Topic 主题/话题
 
@@ -814,6 +816,395 @@ int main(int argc, char** argv) {
 }
 
 ```
+
+
+
+## TF2
+
+> 《古月ROS21讲》中的TF1已经不用啦！
+>
+> [官网]()：tf 已被弃用，取而代之的是[tf2](https://wiki.ros.org/tf2)。[tf2](https://wiki.ros.org/tf2)提供了 tf 功能的超集，实际上现在是底层的实现。如果您现在刚刚学习，强烈建议使用[tf2/Tutorials](https://wiki.ros.org/tf2/Tutorials)。
+
+wiki: https://wiki.ros.org/tf2
+
+tutorials: https://wiki.ros.org/tf2/Tutorials
+
+### tf2能做什么?为什么要用tf2?
+
+You want to **see** what tf can do instead of just reading about it? Check out the [tf2 introduction demo](https://wiki.ros.org/tf2/Tutorials/Introduction to tf2).
+
+> 你想看看它能做什么，而不是只是阅读它?查看[tf2介绍演示](https://wiki.ros.org/tf2/Tutorials/Introduction to tf2)。
+
+A robotic system typically has many 3D [coordinate frames](https://wiki.ros.org/geometry/CoordinateFrameConventions) that change over **time**, such as a world frame, base frame, gripper frame, head frame, etc. tf2 keeps track of all these frames over time, and allows you to ask questions like:
+
+> 机器人系统通常有许多随**时间**变化的3D[坐标框架](https://wiki.ros.org/geometry/CoordinateFrameConventions)，如世界框架、基础框架、抓手框架、头部框架等。tf2会随时间跟踪所有这些框架，并允许你问这样的问题:
+
+- Where was the head frame relative to the world frame, 5 seconds ago?
+
+  > 5秒前，头部坐标系相对于世界坐标系在哪里?
+
+- What is the pose of the object in my gripper relative to my base?
+
+  > 我的抓手中物体相对于我的底座的姿势是什么?
+
+- What is the current pose of the base frame in the map frame?
+
+  > 基本框架在地图框架中的当前姿态是什么?
+
+tf2 can operate in a **distributed system**. This means all the information about the coordinate frames of a robot is available to all ROS components on any computer in the system. Tf2 can operate with a central server that contains all transform information, or you can have every component in your distributed system build its own transform information database.
+
+> Tf2可以在**分布式系统**中运行。这意味着关于机器人坐标框架的所有信息对于系统中任何计算机上的所有ROS组件都是可用的。Tf2可以与包含所有转换信息的中央服务器一起操作，或者您可以让分布式系统中的每个组件构建自己的转换信息数据库。
+
+For more information on the design see [design](https://wiki.ros.org/tf2/Design)
+
+### Tutorials
+
+There are essentially two tasks that any user would use tf2 for, **listening for transforms** and **broadcasting transforms**.
+
+Anyone using tf2 will need to **listen for transforms**:
+
+- **Listening for transforms** - Receive and buffer all coordinate frames that are broadcasted in the system, and query for specific transforms between frames. Check out the writing a tf2 listener tutorial [(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (C%2B%2B)).
+
+  > **监听转换** -接收并缓冲所有在系统中广播的坐标帧，并查询帧之间的特定转换。查看编写tf2侦听器教程[(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2侦听器(Python)) [(c++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2侦听器(C%2B%2B))。
+
+To extend the *capabilities*(功能) of a robot you will need to start broadcasting transforms.
+
+- **Broadcasting transforms** - Send out the relative pose of coordinate frames to the rest of the system. A system can have many broadcasters that each provide information about a different part of the robot. Check out the writing a tf2 broadcaster tutorial [(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 broadcaster (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 broadcaster (C%2B%2B)).
+
+  > **广播变换** -发送坐标系的相对姿态到系统的其余部分。一个系统可以有许多广播器，每个广播器提供关于机器人不同部分的信息。查看编写tf2广播器教程[(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2广播器(Python)) [(c++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2广播器(C%2B%2B))。
+
+Once you are finished with the basic tutorials, you can move on to learn about tf2 and time. The tf2 and time tutorial [(Python)](https://wiki.ros.org/tf2/Tutorials/tf2 and time (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/tf2 and time (C%2B%2B)) teaches the basic principles of tf2 and time. The advanced tutorial about tf2 and time [(Python)](https://wiki.ros.org/tf2/Tutorials/Time travel with tf2 (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/Time travel with tf2 (C%2B%2B)) teaches the principles of time traveling with tf2.
+
+> 一旦你完成了基本教程，你可以继续学习tf2和time。**tf2和time教程**:[(Python)](https://wiki.ros.org/tf2/Tutorials/tf2和time (Python)) [(c++)](https://wiki.ros.org/tf2/Tutorials/tf2和time (C%2B%2B))教授tf2和time的基本原理。关于tf2和时间的**高级教程**[(Python)](https://wiki.ros.org/tf2/Tutorials/Time travel with tf2 (Python)) [(c++)](https://wiki.ros.org/tf2/Tutorials/Time travel with tf2 (C%2B%2B))教授使用tf2进行时间旅行的原理。
+
+If you are looking for an easy tool to manually tweak tf transforms, such as for quick calibration-by-eye tuning, try [Manual TF Calibration Tools](https://wiki.ros.org/tf_keyboard_cal)
+
+> 如果你正在寻找一个简单的工具来手动调整tf转换，如快速校准眼调，尝试[手动tf校准工具](https://wiki.ros.org/tf_keyboard_cal)
+
+#### 静态的广播 Writing a tf2 static broadcaster (C++)
+
+In this tutorial we will write code to publish static transforms to tf2. This is a standalone tutorial covering the basics of static transforms.
+
+> 在本教程中，我们将编写代码向tf2发布静态转换。这是一个独立的教程，介绍静态转换的基础知识
+
+In the next two tutorials we will write the code to reproduce the demo from the [tf2 introduction](https://wiki.ros.org/tf2/Tutorials/Introduction to tf2) tutorial. After that, the following tutorials focus on extending the demo with more advanced tf2 features.
+
+> 在接下来的两个教程中，我们将编写代码来再现tf2介绍教程中的演示。之后，下面的教程将重点介绍使用更高级的tf2功能扩展演示。
+
+- **建包**
+
+```shell
+$ catkin_create_pkg learning_tf2 tf2 tf2_ros roscpp rospy turtlesim
+```
+
+- **如何broadcast transforms(广播变换)**
+
+This tutorial teaches you how to broadcast coordinate frames to tf2. In this case, we want to broadcast the changing coordinate frames of the turtles, as they move around.
+
+> 本教程教你如何广播坐标帧到tf2。在本例中，我们想要广播海龟移动时坐标帧的变化。
+
+Let's first create the source files. Go to the package we just created:
+
+> 创建source files, 在刚才创建的package的目录下：
+
+```shell
+ $ roscd learning_tf2
+```
+
+- **Code**
+
+Fire up your favourite editor to paste the following code into a new file called **`src/static_turtle_tf2_broadcaster.cpp`**.
+
+```c++
+#include <ros/ros.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <cstdio>
+#include <tf2/LinearMath/Quaternion.h>
+
+
+std::string static_turtle_name;
+
+int main(int argc, char **argv)
+{
+  ros::init(argc,argv, "my_static_tf2_broadcaster");
+  if(argc != 8)
+  {
+    ROS_ERROR("Invalid number of parameters\nusage: static_turtle_tf2_broadcaster child_frame_name x y z roll pitch yaw");
+    return -1;
+  }
+  if(strcmp(argv[1],"world")==0)
+  {
+    ROS_ERROR("Your static turtle name cannot be 'world'");
+    return -1;
+
+  }
+  static_turtle_name = argv[1];
+  static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  geometry_msgs::TransformStamped static_transformStamped;
+
+  static_transformStamped.header.stamp = ros::Time::now();
+  static_transformStamped.header.frame_id = "world";
+  static_transformStamped.child_frame_id = static_turtle_name;
+  static_transformStamped.transform.translation.x = atof(argv[2]);
+  static_transformStamped.transform.translation.y = atof(argv[3]);
+  static_transformStamped.transform.translation.z = atof(argv[4]);
+  tf2::Quaternion quat;
+  quat.setRPY(atof(argv[5]), atof(argv[6]), atof(argv[7]));
+  static_transformStamped.transform.rotation.x = quat.x();
+  static_transformStamped.transform.rotation.y = quat.y();
+  static_transformStamped.transform.rotation.z = quat.z();
+  static_transformStamped.transform.rotation.w = quat.w();
+  static_broadcaster.sendTransform(static_transformStamped);
+  ROS_INFO("Spinning until killed publishing %s to world", static_turtle_name.c_str());
+  ros::spin();
+  return 0;
+};
+```
+
+- **运行**
+
+  CMakeLists.txt
+
+  ```cmake
+  add_executable(static_turtle_tf2_broadcaster src/static_turtle_tf2_broadcaster.cpp)
+  target_link_libraries(static_turtle_tf2_broadcaster  ${catkin_LIBRARIES} )
+  ```
+
+  然后
+
+  ```shell
+  $ catkin_make
+  # 新终端
+  $ . /opt/ros/$ROS-DISTRO/setup.bash
+  $ roscore
+  # 新终端
+  $ rosrun learning_tf2 static_turtle_tf2_broadcaster mystaticturtle 0 0 1 0 0 0
+  ```
+
+- **检查结果**
+
+```shell
+ $ rostopic echo /tf_static
+```
+
+结果be like:
+
+```shell
+transforms:
+  -
+    header:
+      seq: 0
+      stamp:
+        secs: 1459282870
+        nsecs: 126883440
+      frame_id: world
+    child_frame_id: mystaticturtle
+    transform:
+      translation:
+        x: 0.0
+        y: 0.0
+        z: 1.0
+      rotation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+---
+```
+
+- **发布静态转换的正确方式**
+
+This tutorial aimed to show how `StaticTransformBroadcaster` can be used to publish static transforms. In your real development process you shouldn't have to write this code yourself and should privilege the use of the dedicated [tf2_ros](https://wiki.ros.org/tf2_ros) tool to do so. [tf2_ros](https://wiki.ros.org/tf2_ros) provides an executable named `static_transform_publisher` that can be used either as a commandline tool or a node that you can add to your launchfiles.
+
+```
+static_transform_publisher x y z yaw pitch roll frame_id child_frame_id
+```
+
+- Publish a static coordinate transform to tf2 using an x/y/z offset in meters and yaw/pitch/roll in radians. (yaw is rotation about Z, pitch is rotation about Y, and roll is rotation about X).
+
+```
+static_transform_publisher x y z qx qy qz qw frame_id child_frame_id
+```
+
+- Publish a static coordinate transform to tf2 using an x/y/z offset in meters and quaternion.
+
+Unlike in tf, there is no period argument, and a latched topic is used.
+
+`static_transform_publisher` is designed both as a command-line tool for manual use, as well as for use within [roslaunch](https://wiki.ros.org/roslaunch) files for setting static transforms. For example:
+
+```xml
+<launch>
+<node pkg="tf2_ros" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 link1_parent link1" />
+</launch>
+```
+
+#### 编写tf2广播器(c++)Writing a tf2 broadcaster (C++)
+
+已做则略：
+
+```shell
+$ catkin_create_pkg learning_tf2 tf2 tf2_ros roscpp rospy turtlesim
+$ roscd learning_tf2
+```
+
+- **Code**
+
+Create a folder called src/ and fire up your favorite editor to paste the following code into a new file called **src/turtle_tf2_broadcaster.cpp.**
+
+```c++
+/**
+ * @file turtle_tf2_broadcaster.cpp
+ * @author Birb
+ * @brief
+ * @version 0.1
+ * @date 2023-09-04
+ *
+ * @copyright Copyright (c) 2023
+ * copy from
+ * https://wiki.ros.org/tf2/Tutorials/Writing%20a%20tf2%20broadcaster%20%28C%2B%2B%29
+ */
+
+#include <geometry_msgs/TransformStamped.h>
+#include <ros/ros.h>
+#include <tf2/LinearMath/Quaternion.h>
+/**
+ * tf2包提供了transformbroadcast的实现，以帮助简化发布转换的任务。
+ * 要使用transformbroadcast，我们需要包含tf2_ros/transform_broadcast .h头文件。
+ */
+#include <tf2_ros/transform_broadcaster.h>
+#include <turtlesim/Pose.h>
+
+std::string turtle_name;
+
+void poseCallback(const turtlesim::PoseConstPtr& msg) {
+  // 在这里，我们创建了一个transformbroadcast对象，稍后我们将使用它通过网络发送转换。
+  static tf2_ros::TransformBroadcaster br;
+
+  /**
+   * 这里我们创建一个Transform对象并为其提供适当的元数据。
+
+        1.我们需要为被发布的转换提供一个时间戳，我们将使用当前时间ros::
+   time::now()来标记它。
+
+        2.然后，我们需要设置所创建链接的父框架的名称，在本例中为“world”
+
+        3.
+   最后，我们需要设置正在创建的链接的子节点的名称，在本例中，这是海龟本身的名称。
+   *
+   */
+  geometry_msgs::TransformStamped transformStamped;
+
+  transformStamped.header.stamp = ros::Time::now();
+  transformStamped.header.frame_id = "world";
+  transformStamped.child_frame_id = turtle_name;
+  // Here we copy the information from the 3D turtle pose into the 3D transform.
+  transformStamped.transform.translation.x = msg->x;
+  transformStamped.transform.translation.x = msg->y;
+  transformStamped.transform.translation.z = 0.0;
+  tf2::Quaternion q;
+  q.setRPY(0, 0, msg->theta);
+  transformStamped.transform.rotation.x = q.x();
+  transformStamped.transform.rotation.y = q.y();
+  transformStamped.transform.rotation.z = q.z();
+  transformStamped.transform.rotation.w = q.w();
+
+  // This is where the real work is done. Sending a transform with a
+  // TransformBroadcaster requires passing in just the transform itself.
+  br.sendTransform(transformStamped);
+}
+
+int main(int argc, char* argv[]) {
+  ros::init(argc, argv, "my_tf2_broadcaster");
+
+  ros::NodeHandle private_node("~");
+  if (!private_node.hasParam("turtle")) {
+    if (argc != 2) {
+      ROS_ERROR("need turtle name as argument");
+      return -1;
+    };
+    turtle_name = argv[1];
+  } else {
+    private_node.getParam("turtle", turtle_name);
+  }
+
+  ros::NodeHandle node;
+  ros::Subscriber sub =
+      node.subscribe(turtle_name + "/pose", 10, &poseCallback);
+
+  ros::spin();
+  return 0;
+};
+
+```
+
+- **CMakeList.txt**
+
+  修改CMakeLists.txt文件
+
+  ```cmake
+  add_executable(turtle_tf2_broadcaster src/turtle_tf2_broadcaster.cpp)
+  target_link_libraries(turtle_tf2_broadcaster
+   ${catkin_LIBRARIES}
+  )
+  ```
+
+  然后
+
+  ```shell
+  $ catkin_make
+  ```
+
+- **创建launch文件**
+
+  If everything went well, you should have a binary file called **`turtle_tf2_broadcaster`** in your `bin` folder. If so, we're ready to create a launch file for this demo. With your text editor, create a new file called **`start_demo.launch`**, and add the following lines:
+
+```xml
+<launch>
+     <!-- Turtlesim Node-->
+    <node pkg="turtlesim" type="turtlesim_node" name="sim"/>
+
+    <node pkg="turtlesim" type="turtle_teleop_key" name="teleop" output="screen"/>
+    <!-- Axes -->
+    <param name="scale_linear" value="2" type="double"/>
+    <param name="scale_angular" value="2" type="double"/>
+
+    <node pkg="learning_tf2" type="turtle_tf2_broadcaster"
+          args="/turtle1" name="turtle1_tf2_broadcaster" />
+    <node pkg="learning_tf2" type="turtle_tf2_broadcaster"
+          args="/turtle2" name="turtle2_tf2_broadcaster" />
+
+  </launch>
+```
+
+And mark the file for installation: 打开CMakeList.txt
+
+```cmake
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(FILES
+ start_demo.launch
+ # myfile2
+ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+```
+
+- **roslaunch运行**
+
+```shell
+$ roslaunch learning_tf2 start_demo.launch
+```
+
+- **使用tf_echo检查结果** 
+
+```shell
+$ rosrun tf tf_echo /world /turtle1
+```
+
+This should show you the pose of the first turtle. Drive around the turtle using the arrow keys (make sure your terminal window is active, not your simulator window). If you run `tf_echo` for the transform between the world and turtle 2, you should not see a transform, because the second turtle is not there yet. However, as soon as we add the second turtle in the next tutorial, the pose of turtle 2 will be broadcast to tf2.
+
+> 这应该向你展示第一只海龟的姿势。使用箭头键驱动海龟(确保您的终端窗口处于活动状态，而不是您的模拟器窗口)。如果对世界和海龟2之间的转换运行tf_echo，则不应该看到转换，因为第二只海龟还没有出现。但是，当我们在下一个教程中添加第二只海龟时，海龟2的姿势将被广播到tf2。
+
+To actually use the transforms broadcast to tf2, you should move on to the next tutorial about creating a tf2 listener [(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (C%2B%2B))
 
 
 
