@@ -897,7 +897,7 @@ In the next two tutorials we will write the code to reproduce the demo from the 
 $ catkin_create_pkg learning_tf2 tf2 tf2_ros roscpp rospy turtlesim
 ```
 
-- **如何broadcast transforms(广播变换)**
+##### **如何broadcast transforms(广播变换)**
 
 This tutorial teaches you how to broadcast coordinate frames to tf2. In this case, we want to broadcast the changing coordinate frames of the turtles, as they move around.
 
@@ -911,7 +911,7 @@ Let's first create the source files. Go to the package we just created:
  $ roscd learning_tf2
 ```
 
-- **Code**
+##### **Code**
 
 Fire up your favourite editor to paste the following code into a new file called **`src/static_turtle_tf2_broadcaster.cpp`**.
 
@@ -962,27 +962,27 @@ int main(int argc, char **argv)
 };
 ```
 
-- **运行**
+##### **运行**
 
-  CMakeLists.txt
+CMakeLists.txt
 
-  ```cmake
-  add_executable(static_turtle_tf2_broadcaster src/static_turtle_tf2_broadcaster.cpp)
-  target_link_libraries(static_turtle_tf2_broadcaster  ${catkin_LIBRARIES} )
-  ```
+```cmake
+add_executable(static_turtle_tf2_broadcaster src/static_turtle_tf2_broadcaster.cpp)
+target_link_libraries(static_turtle_tf2_broadcaster  ${catkin_LIBRARIES} )
+```
 
-  然后
+然后
 
-  ```shell
-  $ catkin_make
-  # 新终端
-  $ . /opt/ros/$ROS-DISTRO/setup.bash
-  $ roscore
-  # 新终端
-  $ rosrun learning_tf2 static_turtle_tf2_broadcaster mystaticturtle 0 0 1 0 0 0
-  ```
+```shell
+$ catkin_make
+# 新终端
+$ . /opt/ros/$ROS-DISTRO/setup.bash
+$ roscore
+# 新终端
+$ rosrun learning_tf2 static_turtle_tf2_broadcaster mystaticturtle 0 0 1 0 0 0
+```
 
-- **检查结果**
+##### **检查结果**
 
 ```shell
  $ rostopic echo /tf_static
@@ -1013,7 +1013,7 @@ transforms:
 ---
 ```
 
-- **发布静态转换的正确方式**
+##### **发布静态转换的正确方式**
 
 This tutorial aimed to show how `StaticTransformBroadcaster` can be used to publish static transforms. In your real development process you shouldn't have to write this code yourself and should privilege the use of the dedicated [tf2_ros](https://wiki.ros.org/tf2_ros) tool to do so. [tf2_ros](https://wiki.ros.org/tf2_ros) provides an executable named `static_transform_publisher` that can be used either as a commandline tool or a node that you can add to your launchfiles.
 
@@ -1048,7 +1048,7 @@ $ catkin_create_pkg learning_tf2 tf2 tf2_ros roscpp rospy turtlesim
 $ roscd learning_tf2
 ```
 
-- **Code**
+##### **Code**
 
 Create a folder called src/ and fire up your favorite editor to paste the following code into a new file called **src/turtle_tf2_broadcaster.cpp.**
 
@@ -1138,26 +1138,26 @@ int main(int argc, char* argv[]) {
 
 ```
 
-- **CMakeList.txt**
+##### **CMakeList.txt**
 
-  修改CMakeLists.txt文件
+修改CMakeLists.txt文件
 
-  ```cmake
-  add_executable(turtle_tf2_broadcaster src/turtle_tf2_broadcaster.cpp)
-  target_link_libraries(turtle_tf2_broadcaster
-   ${catkin_LIBRARIES}
-  )
-  ```
+```cmake
+add_executable(turtle_tf2_broadcaster src/turtle_tf2_broadcaster.cpp)
+target_link_libraries(turtle_tf2_broadcaster
+ ${catkin_LIBRARIES}
+)
+```
 
-  然后
+然后
 
-  ```shell
-  $ catkin_make
-  ```
+```shell
+$ catkin_make
+```
 
-- **创建launch文件**
+##### **创建launch文件**
 
-  If everything went well, you should have a binary file called **`turtle_tf2_broadcaster`** in your `bin` folder. If so, we're ready to create a launch file for this demo. With your text editor, create a new file called **`start_demo.launch`**, and add the following lines:
+If everything went well, you should have a binary file called **`turtle_tf2_broadcaster`** in your `bin` folder. If so, we're ready to create a launch file for this demo. With your text editor, create a new file called **`start_demo.launch`**, and add the following lines:
 
 ```xml
 <launch>
@@ -1188,13 +1188,13 @@ install(FILES
 )
 ```
 
-- **roslaunch运行**
+##### **roslaunch运行**
 
 ```shell
 $ roslaunch learning_tf2 start_demo.launch
 ```
 
-- **使用tf_echo检查结果** 
+##### **使用tf_echo检查结果** 
 
 ```shell
 $ rosrun tf tf_echo /world /turtle1
@@ -1205,6 +1205,233 @@ This should show you the pose of the first turtle. Drive around the turtle using
 > 这应该向你展示第一只海龟的姿势。使用箭头键驱动海龟(确保您的终端窗口处于活动状态，而不是您的模拟器窗口)。如果对世界和海龟2之间的转换运行tf_echo，则不应该看到转换，因为第二只海龟还没有出现。但是，当我们在下一个教程中添加第二只海龟时，海龟2的姿势将被广播到tf2。
 
 To actually use the transforms broadcast to tf2, you should move on to the next tutorial about creating a tf2 listener [(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (C%2B%2B))
+
+#### 添加框架（C++）Adding a frame (C++)
+
+> **Note:** This tutorial assumes you **have completed the writing a tf2 listener tutorial** [(Python)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (Python)) [(C++)](https://wiki.ros.org/tf2/Tutorials/Writing a tf2 listener (C%2B%2B)). 
+
+##### Why adding frames
+
+对于许多任务来说，在局部框架内思考更容易，例如，在激光扫描仪中心的框架内对激光扫描进行推理是最容易的。Tf2允许你为系统中的每个传感器、链路等定义一个本地帧。tf2会处理所有引入的额外的帧变换。
+
+##### Where to add frames
+
+tf2建立一个树结构的框架;它不允许在框架结构中出现闭环。这意味着一个框架只有一个父框架，但它可以有多个子框架。目前我们的tf2树包含三个框架:world, turtle1和turtle2。这两只乌龟是世界的孩子。如果我们想要在tf2中添加一个新框架，那么三个现有框架中的一个需要成为父框架，而新框架将成为子框架。
+
+![](https://wiki.ros.org/tf2/Tutorials/Adding%20a%20frame%20%28C%2B%2B%29?action=AttachFile&do=get&target=tree.png)
+
+##### How to add a frame
+
+```shell
+$ roscd learning_tf2
+```
+
+##### Code:
+
+`src/frame_tf2_broadcaster.cpp`(和tf2 broadcaster很像)
+
+```c++
+#include <ros/ros.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
+
+int main(int argc, char** argv){
+  ros::init(argc, argv, "my_tf2_broadcaster");
+  ros::NodeHandle node;
+
+   tf2_ros::TransformBroadcaster tfb;
+  geometry_msgs::TransformStamped transformStamped;
+
+  
+  transformStamped.header.frame_id = "turtle1";
+  transformStamped.child_frame_id = "carrot1";
+  transformStamped.transform.translation.x = 0.0;
+  transformStamped.transform.translation.y = 2.0;
+  transformStamped.transform.translation.z = 0.0;
+  tf2::Quaternion q;
+        q.setRPY(0, 0, 0);
+  transformStamped.transform.rotation.x = q.x();
+  transformStamped.transform.rotation.y = q.y();
+  transformStamped.transform.rotation.z = q.z();
+  transformStamped.transform.rotation.w = q.w();
+
+  ros::Rate rate(10.0);
+  while (node.ok()){
+    transformStamped.header.stamp = ros::Time::now();
+    tfb.sendTransform(transformStamped);
+    rate.sleep();
+    printf("sending\n");
+  }
+
+};
+```
+
+##### CMakeLists.txt
+
+```cmake
+add_executable(frame_tf2_broadcaster src/frame_tf2_broadcaster.cpp)
+target_link_libraries(frame_tf2_broadcaster
+ ${catkin_LIBRARIES}
+)
+```
+
+**edit the** `start_demo.launch`
+
+```xml
+<launch>
+    ...
+    <node pkg="learning_tf2" type="frame_tf2_broadcaster"
+          name="broadcaster_frame" />
+  </launch>
+```
+
+**start the turtle broadcaster demo**
+
+```shell
+$ roslaunch learning_tf2 start_demo.launch
+```
+
+##### Checking the results
+
+So, if you drive the first turtle around, you notice that the behavior  didn't change from the previous tutorial, even though we added a new  frame. That's because adding an extra frame does not affect the other  frames, and our listener is still using the previously defined frames.  So, let's change the behavior of the listener. 
+
+> 因此，如果您驾驶第一只海龟，您会注意到，尽管我们添加了一个新帧，但它的行为与上一个教程相比并没有改变。这是因为添加一个额外的帧不会影响其他帧，我们的监听器仍然使用先前定义的帧。所以，让我们改变听众的行为。
+
+Open the `src/turtle_tf2_listener.cpp` file, and simple replace `"/turtle1"` with `"/carrot1"` in lines 32-33: 
+
+```c++
+transformStamped = listener.lookupTransform("/turtle2", "/carrot1",
+                           ros::Time(0));
+```
+
+And now the good part: just rebuild and restart the turtle demo, and  you'll see the second turtle following the carrot instead of the first  turtle! 
+
+```shell
+$ roslaunch learning_tf2 start_demo.launch
+```
+
+执行：
+
+```shell
+$ rosrun rqt_tf_tree rqt_tf_tree
+```
+
+可以看到坐标系之间的关系如：![](/home/b-zhushiyun/birb/NotebookPictures/frames_turtle_1.png)
+
+##### 广播移动帧Broadcasting a moving frame
+
+The extra frame we published in this tutorial is a fixed frame that  doesn't change over time in relation to the parent frame. However, if  you want to publish a moving frame you can change the broadcaster to  change over time. Let's modify the `/carrot1` frame to change relative to `/turtle1` over time. Don't forget to put these lines within the while loop, so that the updated values get sent. 
+
+> 我们在本教程中发布的额外框架是一个固定的框架，它不会随着时间的推移而改变与父框架的关系。但是，如果要发布移动帧，可以将广播器更改为随时间更改。让我们修改/carrot1框架，使其随时间相对于/turtle1发生变化。不要忘记将这些行放入while循环中，以便发送更新后的值。
+
+```c++
+  transformStamped.transform.translation.x = 2.0*sin(ros::Time::now().toSec());
+  transformStamped.transform.translation.y = 2.0*cos(ros::Time::now().toSec());
+```
+
+完整代码为：
+
+```c++
+/**
+ * @file frame_tf2_broadcaster.cpp
+ * @author Birb
+ * @brief
+ * @version 0.1
+ * @date 2023-09-06
+ *
+ * @copyright Copyright (c) 2023
+ */
+
+#include <ros/ros.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
+
+int main(int argc, char** argv){
+  ros::init(argc, argv, "my_tf2_broadcaster");
+  ros::NodeHandle node;
+
+  tf2_ros::TransformBroadcaster tfb;
+  geometry_msgs::TransformStamped transformStamped;
+
+  transformStamped.header.frame_id = "turtle1";
+  transformStamped.child_frame_id = "carrot1";
+
+  ros::Rate rate(10.0);
+  while (node.ok()){
+    // 在每个循环迭代中更新carrot1的位置
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.transform.translation.x = 2.0 * sin(ros::Time::now().toSec());
+    transformStamped.transform.translation.y = 2.0 * cos(ros::Time::now().toSec());
+
+    tf2::Quaternion q;
+    q.setRPY(0, 0, 0);
+    transformStamped.transform.rotation.x = q.x();
+    transformStamped.transform.rotation.y = q.y();
+    transformStamped.transform.rotation.z = q.z();
+    transformStamped.transform.rotation.w = q.w();
+
+    tfb.sendTransform(transformStamped);
+    rate.sleep();
+    printf("sending\n");
+  }
+
+  return 0;
+}
+
+```
+
+And now the good part: just rebuild and restart the turtle demo, and you'll see the second turtle following a moving carrot. 
+
+```shell
+ $ roslaunch learning_tf2 start_demo.launch
+```
+
+
+
+#### Learning about tf2 and time (C++)
+
+##### tf2 and Time
+
+In the previous tutorials we learned about how tf2 keeps track of a tree of coordinate frames. This tree changes over time, and tf2 stores a  time snapshot for every transform (for up to 10 seconds by default).  Until now we used the `lookupTransform()` function to get access to the **latest available transforms** in that tf2 tree, without knowing at what time that transform was  recorded. This tutorial will teach you how to get a transform **at a specific time**. 
+
+> 在之前的教程中，我们了解了tf2如何跟踪坐标帧树。该树随着时间的推移而变化，tf2为每个转换存储时间快照(默认情况下最长为10秒)。到目前为止，我们使用' lookupTransform() '函数来访问tf2树中最新的可用转换，而不知道该转换是在什么时间被记录的。本教程将教你如何在特定时间获得变换。
+
+**迷惑：**不知道为什么根据教程走下来以后，每次终端中的提示都和教程不一样：
+
+tutorial like:
+
+```
+[ERROR] 1253918454.307455000: Extrapolation Too Far in the future: target_time is 1253918454.307, but the closest tf2  data is at 1253918454.300 which is 0.007 seconds away.Extrapolation Too Far in the future: target_time is 1253918454.307, but the closest tf2  data is at 1253918454.301 which is 0.006 seconds away. See http://pr.willowgarage.com/pr-docs/ros-packages/tf2/html/faq.html for more info. When trying to transform between /turtle1 and /turtle2. See http://www.ros.org/wiki/tf2#Frequently_Asked_Questions
+```
+
+mine like:
+
+```
+[ WARN] [1693982230.901933166]: Could NOT transform turtle2 to turtle1: Lookup would require extrapolation into the past.  Requested time 1693982227.878927864 but the earliest data is at time 1693982228.383314290, when looking up transform from frame [turtle1] to frame [turtle2]
+```
+
+但是海龟运动效果应该是一样的。
+
+#### Time travel with tf2 (C++)
+
+开头第一步对不上，先不管了，消化一下。
+
+### 小练习：警察抓小偷
+
+题目：
+
+> 1. 创建两个小海龟的TF2 Broadcaster：分别为警察和小偷创建TF2 broadcaster来广播它们的坐标变换。
+> 2. 创建一个TF2 Listener：创建一个TF2 listener来监听警察和小偷的坐标变换，并计算它们之间的距离。
+> 3. 实时跟踪小偷：在监听器中，通过TF2获取警察和小偷的坐标变换，并计算它们之间的距离。
+> 4. 判断小偷是否被捉住：当警察距离小偷一定距离时，触发一个条件，输出信息：“小偷已被捉住！”。
+> 5. 重新生成小偷的位置：一旦小偷被捉住，重新随机生成小偷的位置，并继续游戏。
+
+cue:
+
+```
+turtle1,turtle2初始各有一个位置；
+turtle1可以操控， 当turtle1靠近turtle2时，提示“抓到小偷了！”，turtle2随机刷新一个位置，玩家可以操控turtle1可以继续追赶。
+```
 
 
 
