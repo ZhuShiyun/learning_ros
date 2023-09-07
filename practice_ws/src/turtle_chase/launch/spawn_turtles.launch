@@ -1,0 +1,7 @@
+<launch>
+  <!-- Spawning turtle1 -->
+  <node pkg="turtlesim" type="spawn_turtle" name="turtle1" output="screen"/>
+
+  <!-- Spawning turtle2 -->
+  <node pkg="turtlesim" type="spawn_turtle" name="turtle2" output="screen"/>
+</launch>
