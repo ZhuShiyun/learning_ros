@@ -1442,33 +1442,12 @@ $ catkin_create_pkg catch_turtle tf2 tf2_ros tf2_geometry_msgs roscpp rospy std_
 ```
 
 ##### 创建一个publisher_tf.cpp：
+Tips:
+
+可以用rosservice 相关命令探索调用一个服务需要的参数。
 
 ```c++
 /*  
-    该文件实现:需要订阅 turtle1 和 turtle2 的 pose，然后广播相对 world 的坐标系信息
-
-    注意: 订阅的两只 turtle,除了命名空间(turtle1 和 turtle2)不同外,
-          其他的话题名称和实现逻辑都是一样的，
-          所以我们可以将所需的命名空间通过 args 动态传入
-小练习：警察抓小偷
-题目：
-创建两个小海龟的TF2 Broadcaster：分别为警察和小偷创建TF2 broadcaster来广播它们的坐标变换。
-
-创建一个TF2 Listener：创建一个TF2 listener来监听警察和小偷的坐标变换，并计算它们之间的距离。
-
-实时跟踪小偷：在监听器中，通过TF2获取警察和小偷的坐标变换，并计算它们之间的距离。
-
-判断小偷是否被捉住：当警察距离小偷一定距离时，触发一个条件，输出信息：“小偷已被捉住！”。
-
-重新生成小偷的位置：一旦小偷被捉住，重新随机生成小偷的位置，并继续游戏。
-
-cue:
-
-￼
-turtle1,turtle2初始各有一个位置；turtle1假扮警察，turtle2假扮小偷；
-turtle1可以操控， 当turtle1靠近turtle2时，提示“抓到小偷了！”，turtle2随机刷新一个位置，玩家可以操控turtle1可以继续追赶。
-实现步骤：
-
     实现流程:
         1.包含头文件
         2.初始化 ros 节点
