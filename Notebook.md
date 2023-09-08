@@ -1418,7 +1418,7 @@ mine like:
 
 ### 小练习：警察抓小偷
 
-题目：
+#### 题目：
 
 > 1. 创建两个小海龟的TF2 Broadcaster：分别为警察和小偷创建TF2 broadcaster来广播它们的坐标变换。
 > 2. 创建一个TF2 Listener：创建一个TF2 listener来监听警察和小偷的坐标变换，并计算它们之间的距离。
@@ -1429,10 +1429,318 @@ mine like:
 cue:
 
 ```
-turtle1,turtle2初始各有一个位置；
+turtle1,turtle2初始各有一个位置；turtle1假扮警察，turtle2假扮小偷；
 turtle1可以操控， 当turtle1靠近turtle2时，提示“抓到小偷了！”，turtle2随机刷新一个位置，玩家可以操控turtle1可以继续追赶。
 ```
 
+#### 实现步骤：
+
+##### 建包：
+
+```shell
+$ catkin_create_pkg catch_turtle tf2 tf2_ros tf2_geometry_msgs roscpp rospy std_msgs geometry_msgs
+```
+
+##### 创建一个publisher_tf.cpp：
+
+```c++
+/*  
+    该文件实现:需要订阅 turtle1 和 turtle2 的 pose，然后广播相对 world 的坐标系信息
+
+    注意: 订阅的两只 turtle,除了命名空间(turtle1 和 turtle2)不同外,
+          其他的话题名称和实现逻辑都是一样的，
+          所以我们可以将所需的命名空间通过 args 动态传入
+小练习：警察抓小偷
+题目：
+创建两个小海龟的TF2 Broadcaster：分别为警察和小偷创建TF2 broadcaster来广播它们的坐标变换。
+
+创建一个TF2 Listener：创建一个TF2 listener来监听警察和小偷的坐标变换，并计算它们之间的距离。
+
+实时跟踪小偷：在监听器中，通过TF2获取警察和小偷的坐标变换，并计算它们之间的距离。
+
+判断小偷是否被捉住：当警察距离小偷一定距离时，触发一个条件，输出信息：“小偷已被捉住！”。
+
+重新生成小偷的位置：一旦小偷被捉住，重新随机生成小偷的位置，并继续游戏。
+
+cue:
+
+￼
+turtle1,turtle2初始各有一个位置；turtle1假扮警察，turtle2假扮小偷；
+turtle1可以操控， 当turtle1靠近turtle2时，提示“抓到小偷了！”，turtle2随机刷新一个位置，玩家可以操控turtle1可以继续追赶。
+实现步骤：
+
+    实现流程:
+        1.包含头文件
+        2.初始化 ros 节点
+        3.解析传入的命名空间
+        4.创建 ros 句柄
+        5.创建订阅对象
+        6.回调函数处理订阅的 pose 信息
+            6-1.创建 TF 广播器
+            6-2.将 pose 信息转换成 TransFormStamped
+            6-3.发布
+        7.spin
+
+*/
+//1.包含头文件
+#include "ros/ros.h"
+#include "turtlesim/Pose.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "geometry_msgs/TransformStamped.h"
+//保存乌龟名称
+std::string turtle_name;
+
+
+void doPose(const turtlesim::Pose::ConstPtr& pose){
+    //  6-1.创建 TF 广播器 ---------------------------------------- 注意 static
+    static tf2_ros::TransformBroadcaster broadcaster;
+    //  6-2.将 pose 信息转换成 TransFormStamped
+    geometry_msgs::TransformStamped tfs;
+    tfs.header.frame_id = "world";
+    tfs.header.stamp = ros::Time::now();
+    tfs.child_frame_id = turtle_name;
+    tfs.transform.translation.x = pose->x;
+    tfs.transform.translation.y = pose->y;
+    tfs.transform.translation.z = 0.0;
+    tf2::Quaternion qtn;
+    qtn.setRPY(0,0,pose->theta);
+    tfs.transform.rotation.x = qtn.getX();
+    tfs.transform.rotation.y = qtn.getY();
+    tfs.transform.rotation.z = qtn.getZ();
+    tfs.transform.rotation.w = qtn.getW();
+    //  6-3.发布
+    broadcaster.sendTransform(tfs);
+
+} 
+
+int main(int argc, char *argv[])
+{
+    setlocale(LC_ALL,"");
+    // 2.初始化 ros 节点
+    ros::init(argc,argv,"pub_tf");
+    // 3.解析传入的命名空间
+    if (argc != 2)
+    {
+        ROS_ERROR("请传入正确的参数");
+    } else {
+        turtle_name = argv[1];
+        ROS_INFO("乌龟 %s 坐标发送启动",turtle_name.c_str());
+    }
+
+    // 4.创建 ros 句柄
+    ros::NodeHandle nh;
+    // 5.创建订阅对象
+    ros::Subscriber sub = nh.subscribe<turtlesim::Pose>(turtle_name + "/pose",1000,doPose);
+    //     6.回调函数处理订阅的 pose 信息
+    //         6-1.创建 TF 广播器
+    //         6-2.将 pose 信息转换成 TransFormStamped
+    //         6-3.发布
+    // 7.spin
+    ros::spin();
+    return 0;
+}
+```
+
+##### 创建一个create_turtle.cpp生成第二只海龟：
+
+```c++
+/* 
+    创建第二只小乌龟
+ */
+#include "ros/ros.h"
+#include "turtlesim/Spawn.h"
+
+int main(int argc, char *argv[])
+{
+
+    setlocale(LC_ALL,"");
+
+    //执行初始化
+    ros::init(argc,argv,"create_turtle");
+    //创建节点
+    ros::NodeHandle nh;
+    //创建服务客户端
+    ros::ServiceClient client = nh.serviceClient<turtlesim::Spawn>("/spawn");
+
+    ros::service::waitForService("/spawn");
+    turtlesim::Spawn spawn;
+    spawn.request.name = "turtle2";
+    spawn.request.x = 1.0;
+    spawn.request.y = 2.0;
+    spawn.request.theta = 3.12415926;
+    bool flag = client.call(spawn);
+    if (flag)
+    {
+        ROS_INFO("乌龟%s创建成功!",spawn.response.name.c_str());
+    }
+    else
+    {
+        ROS_INFO("乌龟2创建失败!");
+    }
+
+    ros::spin();
+
+    return 0;
+}
+
+```
+
+##### 创建catch_turtle.cpp:
+
+```c++
+/*  
+创建随机数生成器，判断turtle2是否被抓到，一旦抓到，给turtle2一个新的随机坐标并让turtle2到达新坐标。
+
+    实现流程:
+        1.包含头文件
+        2.初始化 ros 节点
+        3.创建 ros 句柄
+        4.创建 TF 订阅对象
+        5.处理订阅到的 TF
+        6.spin
+
+*/
+//1.包含头文件
+#include "ros/ros.h"
+#include "tf2_ros/transform_listener.h"
+#include "geometry_msgs/TransformStamped.h"
+#include "geometry_msgs/Twist.h"
+#include<turtlesim/TeleportAbsolute.h>
+#include<random>
+
+
+int main(int argc, char *argv[])
+{
+    setlocale(LC_ALL,"");
+    // 2.初始化 ros 节点
+    ros::init(argc,argv,"catch_turtle");
+    // 3.创建 ros 句柄
+    ros::NodeHandle nh;
+    // 4.创建 TF 订阅对象
+    tf2_ros::Buffer buffer;
+    tf2_ros::TransformListener listener(buffer);
+    // 5.处理订阅到的 TF
+
+    // 需要创建发布 /turtle2/cmd_vel 的 publisher 对象
+
+    ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("/turtle2/cmd_vel",1000);
+    
+        // 创建随机数生成器
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(0.0, 11.0);  // 生成0到11之间的随机实数
+
+   // 定义客户端
+    ros::ServiceClient client = nh.serviceClient<turtlesim::TeleportAbsolute>("/turtle2/teleport_absolute");
+    turtlesim::TeleportAbsolute srv;
+
+    ros::Rate rate(10);
+    while (ros::ok())
+    {
+        try
+        {
+            //5-1.先获取 turtle1 相对 turtle2 的坐标信息
+            geometry_msgs::TransformStamped tfs = buffer.lookupTransform("turtle2","turtle1",ros::Time(0));
+
+            //5-2.根据坐标信息生成速度信息 -- geometry_msgs/Twist.h
+            geometry_msgs::Twist twist;
+
+             float distent  = sqrt(pow(tfs.transform.translation.x,2) + pow(tfs.transform.translation.y,2));
+
+            if (distent< 2)
+            {
+
+                srv.request.x = dist(gen);
+                srv.request.y = dist(gen);
+                srv.request.theta = dist(gen);
+
+                ros::service::waitForService("/turtle2/teleport_absolute");
+
+               if(client.call(srv)) 
+                {
+                    ROS_INFO("小偷被抓住了！");
+                }
+                else
+                {
+                    ROS_INFO("Failed to call /turtle2/teleport_absolute service");
+                }
+                
+            }
+            else
+            {
+                twist.linear.x =0;
+                twist.angular.z = 0;
+            }
+            //5-3.发布速度信息 -- 需要提前创建 publish 对象
+            pub.publish(twist);
+        }
+        catch(const std::exception& e)
+        {
+            // std::cerr << e.what() << '\n';
+            ROS_INFO("错误提示:%s",e.what());
+        }
+        rate.sleep();
+        // 6.spin
+        ros::spinOnce();
+    }
+
+    return 0;
+}
+
+
+```
+
+##### 创建catch.launch:
+
+用launch文件启动会方便一些
+
+```xml
+<!--
+    tf2实现警察抓小偷案例
+-->
+<launch>
+     <!-- 启动乌龟节点与键盘控制节点 -->
+    <node pkg="turtlesim" type="turtlesim_node" name="turtle1" output="screen" />
+    <node pkg="turtlesim" type="turtle_teleop_key" name="key_control" output="screen"/>
+      <!-- 启动创建第二只乌龟的节点 -->
+    <node pkg="catch_turtle" type="create_turtle" name="turtle2" output="screen" />
+    <!-- 启动两个坐标发布节点 -->
+    <node pkg="catch_turtle" type="publisher_tf" name="police" output="screen" args="turtle1" />
+    <node pkg="catch_turtle" type="publisher_tf" name="thief" output="screen" args="turtle2" />
+    <!-- 启动坐标转换节点 -->
+     <node pkg="catch_turtle" type="catch_turtle" name="listener" output="screen" />
+</launch>
+```
+
+##### 配置CMakeLists.txt:
+
+```cmake
+add_executable(create_turtle src/create_turtle.cpp)
+target_link_libraries(create_turtle ${catkin_LIBRARIES})
+
+add_executable(catch_turtle src/catch_turtle.cpp)
+target_link_libraries(catch_turtle ${catkin_LIBRARIES})
+
+add_executable(publisher_tf src/publisher_tf.cpp)
+target_link_libraries(publisher_tf ${catkin_LIBRARIES})
+```
+
+##### 编译并在终端中运行：
+
+```shell
+$ roslaunch catch_turtle catch.launch
+```
+
+如果一切正常，现在可以达到cue里提到的效果了。
+
+#### 其他版本-1 敌进我退
+
+这个运用了tf2静态坐标转换等内容，并让turtle2监听turtle1的坐标，当turtle2发现turtle1靠近时，给turtle2一个相反的方向和速度, 尽量保持和turtle1相同距离，见 [practice_ws/src/tf_static](practice_ws/src/tf_static)。
+
+#### 其他版本-2  警察躲小偷
+
+这个只是计算了警察与小偷之间的距离并给警察一个线速度，所以每次警察遇到小偷时都会以差不多的方向快速跑开，如果把警察和小偷的行为互换，小偷最终会憋死在墙角里（注：其他版本1 敌进我退 也是这样），没有用到tf坐标转换。见 [practice_ws/src/turtle_chase](practice_ws/src/turtle_chase)
 
 
 ------
