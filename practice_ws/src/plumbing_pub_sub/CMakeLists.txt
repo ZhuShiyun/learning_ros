@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(demo02_dr)
+project(plumbing_pub_sub)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,10 +8,10 @@ project(demo02_dr)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  dynamic_reconfigure
   roscpp
   rospy
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+# catkin_python_setup()message_generation
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -44,15 +44,14 @@ find_package(catkin REQUIRED COMPONENTS
 ##     catkin_package(CATKIN_DEPENDS ...)
 ##   * uncomment the add_*_files sections below as needed
 ##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
+##   * uncomment the generatemessage_generation_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  Person.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -69,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -93,14 +92,6 @@ find_package(catkin REQUIRED COMPONENTS
 #   cfg/DynReconf1.cfg
 #   cfg/DynReconf2.cfg
 # )
-# generate_dynamic_reconfigure_options(
-#   cfg/dr.cfg
-# )
-# generate_dynamic_reconfigure_options(
-
-# cfg/dr.cfg
-# )
-
 
 ###################################
 ## catkin specific configuration ##
@@ -113,8 +104,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES demo02_dr
-#  CATKIN_DEPENDS dynamic_reconfigure roscpp rospy std_msgs
+#  LIBRARIES plumbing_pub_sub
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -131,7 +122,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/demo02_dr.cpp
+#   src/${PROJECT_NAME}/plumbing_pub_sub.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -140,12 +131,11 @@ include_directories(
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-## With catkin_make all pack#!/usr/bin/env python
-
+## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/demo02_dr_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/plumbing_pub_sub_node.cpp)
 
-## Rename C++ executable withochmod +x *.cfgut prefix
+## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
@@ -158,7 +148,30 @@ include_directories(
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
-# )chmod +x *.cfg
+# )
+
+add_executable(demo01_pub src/demo01_pub.cpp)
+target_link_libraries(demo01_pub
+ ${catkin_LIBRARIES}
+)
+
+add_executable(demo02_sub src/demo02_sub.cpp)
+target_link_libraries(demo02_sub
+ ${catkin_LIBRARIES}
+)
+
+add_executable(demo03_pub_person src/demo03_pub_person.cpp)
+target_link_libraries(demo03_pub_person
+ ${catkin_LIBRARIES}
+)
+add_dependencies(demo03_pub_person ${PROJECT_NAME}_generate_messages_cpp)
+
+add_executable(demo04_sub_person src/demo04_sub_person.cpp)
+target_link_libraries(demo04_sub_person
+ ${catkin_LIBRARIES}
+)
+add_dependencies(demo04_sub_person ${PROJECT_NAME}_generate_messages_cpp)
+
 
 #############
 ## Install ##
@@ -173,8 +186,12 @@ include_directories(
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
+catkin_install_python(PROGRAMS
+  scripts/listener_p.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-## Mark executables for installchmod +x *.cfgation
+## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
 # install(TARGETS ${PROJECT_NAME}_node
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -207,7 +224,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_demo02_dr.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_plumbing_pub_sub.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
