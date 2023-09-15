@@ -213,6 +213,18 @@ catkin_package(
 
 ### 2.2.3 服务通信自定义srv调用A(C++)
 
+#### 1.服务端
+
+测试：
+
+```shell
+$ rosservice call /AddInts [num1] [mun2]
+```
+
+
+
+#### 2.客户端
+
 #### 3.配置 CMakeLists.txt
 
 注意，笔记中为官网/推荐写法，实际上默认写法也可以：
@@ -221,6 +233,353 @@ catkin_package(
 # add_dependencies(demo01_server ${PROJECT_NAME}_gencpp)
 add_dependencies(demo01_server  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ```
+
+#### 4.执行
+
+**流程:**
+
+- 需要先启动服务:`rosrun 包名 服务`
+- 然后再调用客户端 :`rosrun 包名 客户端 参数1 参数2`
+
+**结果:**
+
+会根据提交的数据响应相加后的结果。
+
+**注意:**
+
+如果先启动客户端，那么会导致运行失败
+
+**优化:**
+
+在客户端发送请求前添加:`client.waitForExistence();`
+
+或:`ros::service::waitForService("AddInts");`
+
+这是一个阻塞式函数，只有服务启动成功后才会继续执行
+
+此处可以使用 launch 文件优化，但是需要注意 args 传参特点
+
+**----- Note -----**
+
+- 为什么不用cin作为输入？
+
+> 在这段代码中，没有使用 `cin >>` 的原因是它是标准输入流（stdin）的一部分，而不是命令行参数。`cin` 通常用于从终端（用户输入）读取数据，而不是用于获取命令行参数。
+>
+> 在这个特定的ROS节点示例中，参数似乎是在命令行上提供的，而不是通过标准输入（`cin`）来获取的。这种方式更适合在命令行中指定参数，特别是当你希望将参数作为程序的输入而不是通过交互式输入时。
+>
+> 如果你想要在运行程序时通过交互式输入获取参数，那么你可以使用 `cin >>`，但在这种情况下，用户必须在程序运行时手动输入参数，而不是在命令行上提供它们。这通常用于需要与用户进行交互的程序，而不是通过命令行自动化脚本。
+
+- `ros::service::waitForService("AddInts");`和 `client.waitForExistence();`有什么区别？
+
+> `ros::service::waitForService("AddInts");` 和 `client.waitForExistence();` 都用于等待ROS服务的存在，但它们的使用方式略有不同，具体区别如下：
+>
+> 1. `ros::service::waitForService("AddInts");`：
+>    - 这是一个全局函数，不是特定于服务客户端的成员函数。
+>    - 它用于等待名为 "AddInts" 的服务出现，并且不依赖于特定的服务客户端对象。你可以在任何地方调用这个函数，只要你知道服务的名称。
+>    - 通常在程序的启动阶段使用，用于确保所需的服务在程序执行之前已经存在。
+> 2. `client.waitForExistence();`：
+>    - 这是一个服务客户端对象的成员函数，是针对特定服务客户端的操作。
+>    - 它用于等待与服务客户端对象关联的服务存在。这意味着你必须先创建一个服务客户端对象，然后调用 `waitForExistence` 来等待与该客户端相关的服务的出现。
+>    - 这通常在服务客户端的初始化阶段使用，用于确保所需的服务在客户端对象的上下文中已经存在。
+>
+> 总之，两者都用于等待ROS服务的存在，但根据你的需求和上下文，你可以选择使用全局函数 `ros::service::waitForService("AddInts");` 或服务客户端对象的成员函数 `client.waitForExistence();`。前者更通用，而后者更与特定的服务客户端对象相关。
+
+## 2.3 参数服务器
+
+### 2.3.1 参数服务器理论模型
+
+#### 3.ROS Master 向 Listener 发送参数值
+
+ROS Master 根据步骤2请求提供的参数名查找参数值，并将查询结果通过 RPC 发送给 Listener。
+
+------
+
+参数可使用数据类型:
+
+- 32-bit integers
+- booleans
+- strings
+- doubles
+- iso8601 dates : 日期和时间的表示方法
+- lists
+- base64-encoded binary data : 以base64进行编码的二进制数据。
+- 字典
+
+> 注意:参数服务器不是为高性能而设计的，因此最好用于存储静态的非二进制的简单数据
+
+### 2.3.2 参数操作A(C++)
+
+#### 1.参数服务器新增(修改)参数 
+
+```c++
+/*
+    需要实现参数的新增与修改
+    需求：首先设置机器人的共享参数，类型，半径（0.15m)
+            再修改半径（0.2m）
+    实现：
+    ros::NodeHandle
+        setParam("键","值")
+    ros::param
+        set("键","值")
+    修改：只需要继续调用setParam或者set，保证 键 是已经存在的，值 会覆盖。
+*/
+
+#include "ros/ros.h"
+
+int main(int argc, char *argv[])
+{
+    // 初始化ros节点
+    ros::init(argc, argv, "demo01_param_set");
+    // 创建节点句柄
+    ros::NodeHandle nh;
+    // 参数增--------------------------
+    // 方案1：nh
+    nh.setParam("type", "yellowCar");
+    nh.setParam("radius", 0.15);
+
+    // 方案2：ros::param
+    ros::param::set("type_param","whiteCar");
+    ros::param::set("radius_param",0.16);
+
+    // 参数改--------------------------
+    // 方案1：nh
+    nh.setParam("radius", 0.2);
+
+    // 方案2：ros::param
+    ros::param::set("radius_param", 0.25);
+
+    return 0;
+}
+```
+
+**调试：**
+
+```shell
+$ rosparam list
+/radius
+/radius_param
+/rosdistro
+/roslaunch/uris/host_zhushiyun__35795
+/rosversion
+/run_id
+/type
+/type_param
+$ rosrun plumbing_param_server demo01_param_set
+$ rosparam get /type
+yellowCar
+$ rosparam get /radius
+0.15
+# 添加修改语句后：
+$ rosrun plumbing_param_server demo01_param_set
+$ rosparam get /radius
+0.2
+
+```
+
+#### 2.参数服务器获取参数
+
+```c++
+/*
+ * @Author: your name
+ * @Date: 2023-09-15 14:19:00
+ * @LastEditTime: 2023-09-15 16:14:25
+ * @LastEditors: zhushiyun
+ * @Description: In User Settings Edit
+ * @FilePath: /src/plumbing_param_server/src/demo02_param_get.cpp
+ */
+
+/*
+    演示参数查询
+    实现：
+    ros::NodeHandle------------------------------------------
+        1. param(键,默认值) 
+            存在，返回对应结果，否则返回默认值
+
+        2. getParam(键,存储结果的变量)
+            存在,返回 true,且将值赋值给参数2
+            若果键不存在，那么返回值为 false，且不为参数2赋值
+
+        3. getParamCached键,存储结果的变量)--提高变量获取效率
+            存在,返回 true,且将值赋值给参数2
+            若果键不存在，那么返回值为 false，且不为参数2赋值
+
+        4. getParamNames(std::vector<std::string>)
+            获取所有的键,并存储在参数 vector 中 
+
+        5. hasParam(键)
+            是否包含某个键，存在返回 true，否则返回 false
+
+        6. searchParam(参数1，参数2)
+            搜索键，参数1是被搜索的键，参数2存储搜索结果的变量
+
+    ros::param-----------------------------------------------
+*/
+
+#include "ros/ros.h"
+
+int main(int argc, char *argv[])
+{
+    // 设置编码
+    setlocale(LC_ALL, "");
+    // 初始化ROS
+    ros::init(argc, argv, "demo02_param_get");
+    // 句柄
+    ros::NodeHandle nh;
+
+    // ros::NodeHandle------------------------------------------
+    // 1. param(键,默认值)
+    double radius = nh.param("radius", 0.5);
+    ROS_INFO("param:radius = %.2f", radius);
+
+    // 2. getParam(键,存储结果的变量)
+    double radius2 = 0.0;
+    bool result = nh.getParam("radius", radius2);
+    // 当取一个不存在的值："Param does not exist!"
+    // bool result = nh.getParam("radiusxxx", radius2);
+    if (result)
+    {
+        ROS_INFO("getParam:r = %.2f", radius2);
+     } else {
+        ROS_INFO("Param does not exist!");
+    }
+
+    // 3. getParamCached键,存储结果的变量)--提高变量获取效率 cached：意思是从缓存里面取。
+    /*
+        原理：
+            前面讲过，参数服务器通过RPC通信，而且这种通信方式效率不高；
+            getParamCached的原理是看一下本地缓存里有没有获取过，如果获取过，直接从本地缓存里取，没有再远程调用。
+    */ 
+    std::string type;
+    bool result2 = nh.getParamCached("type",type);
+    if (result2)
+    {
+        ROS_INFO("getParamCached:type = %s", type.c_str());
+     } else {
+        ROS_INFO("Param does not exist!");
+    }
+
+    // 4. getParamNames(std::vector<std::string>) 获取所有的键
+    std::vector<std::string> names;
+    nh.getParamNames(names);
+    for (auto &&name : names)
+    {
+        ROS_INFO("getParamNames:遍历到的元素：%s", name.c_str());
+    }
+
+    // 5. hasParam(键) 判断某个键是否存在    
+    bool flag1 = nh.hasParam("radius");
+    bool flag2 = nh.hasParam("radiusxxxx");
+    ROS_INFO("radius 存在吗？ %d", flag1);
+    ROS_INFO("radiusxxxx 存在吗？ %d", flag2);  
+
+    // 6. searchParam(参数1，参数2) 查询参数
+    std::string key;
+    nh.searchParam("type", key);
+    ROS_INFO("searchParam:搜索结果：%s", key.c_str()); 
+    //      若找不到;
+    std::string key2;
+    nh.searchParam("typeeeee", key2);
+    ROS_INFO("searchParam:搜索结果：%s", key2.c_str()); 
+
+    // ros::param-----------------------------------------------和API ROS::NodeHandle差不多，键名有细微区别
+    // 1. param(键,默认值)
+    double radius_param = ros::param::param("radius", 100.5);
+    ROS_INFO("param:radius = %.2f", radius_param);
+    // 2. getParam(键,存储结果的变量)
+    double radius_param2 = 0.0;
+    bool result_param = ros::param::get("radius", radius_param2);
+    if (result_param)
+    {
+        ROS_INFO("getParam:r = %.2f", radius_param2);
+     } else {
+        ROS_INFO("Param does not exist!");
+    }
+    // 3. getParamCached键,存储结果的变量)--提高变量获取效率
+    std::string type_param;
+    bool result_param2 = ros::param::getCached("type",type_param);
+    if (result_param2)
+    {
+        ROS_INFO("getParamCached:type = %s", type_param.c_str());
+     } else {
+        ROS_INFO("Param does not exist!");
+    }
+    // 4. getParamNames(std::vector<std::string>) 获取所有的键
+    std::vector<std::string> names_param;
+    ros::param::getParamNames(names_param);
+    for (auto &&name : names)
+    {
+        ROS_INFO("getParamNames:遍历到的元素：%s", name.c_str());
+    }
+    // 5. hasParam(键) 判断某个键是否存在
+    bool flag_param1 = ros::param::has("radius");
+    bool flag_param2 = ros::param::has("radiusxxxx");
+    ROS_INFO("radius 存在吗？ %d", flag_param1);
+    ROS_INFO("radiusxxxx 存在吗？ %d", flag_param2);
+    // 6. searchParam(参数1，参数2) 查询参数
+    std::string key_param;
+    ros::param::search("type", key_param);
+    ROS_INFO("searchParam:搜索结果：%s", key_param.c_str()); 
+    //      若找不到;
+    std::string key_param2;
+    ros::param::search("typeeeee", key_param2);
+    ROS_INFO("searchParam:搜索结果：%s", key_param2.c_str());
+
+    return 0;
+}
+
+```
+
+
+
+#### 3.参数服务器删除参数
+
+```c++
+/* 
+    参数服务器操作之删除_C++实现:
+
+    ros::NodeHandle
+        deleteParam("键")
+        根据键删除参数，删除成功，返回 true，否则(参数不存在)，返回 false
+
+    ros::param
+        del("键")
+        根据键删除参数，删除成功，返回 true，否则(参数不存在)，返回 false
+
+
+*/
+
+#include "ros/ros.h"
+
+int main(int argc, char *argv[])
+{
+    setlocale(LC_ALL,"");
+    ros::init(argc, argv, "demo03_param_del");
+    ros::NodeHandle nh;
+
+    // ros::NodeHandle----------------------------------
+    bool r1 = nh.deleteParam("type_param");
+    ROS_INFO("nh 删除结果:%d",r1);
+
+    // ros::param---------------------------------------
+    bool r2 = ros::param::del("type");
+    if (r2)
+    {
+        ROS_INFO("Deleted successfully!");
+    } else {
+        ROS_INFO("Deleted failed!");
+    }
+    
+    
+
+    return 0;
+}
+
+```
+
+
+
+## 2.4 常用命令
+
 
 
 
