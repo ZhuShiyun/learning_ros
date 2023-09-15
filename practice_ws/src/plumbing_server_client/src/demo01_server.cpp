@@ -1,5 +1,4 @@
 /*
-!!!!!!!!!!!!!!有点问题
     需求: 
         编写两个节点实现服务通信，客户端节点需要提交两个整数到服务器
         服务器需要解析客户端提交的数据，相加后，将结果响应回客户端，
@@ -27,7 +26,7 @@ bool doReq(plumbing_server_client::AddInts::Request &request,
     //2.组织响应
     int sum = num1 + num2;
     response.sum = sum;
-    ROS_INFO("sum = ", sum);
+    ROS_INFO("sum = %d", sum);
 
     return true;
 }
