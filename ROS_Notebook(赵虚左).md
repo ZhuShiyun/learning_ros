@@ -1,3 +1,11 @@
+
+
+
+
+[TOC]
+
+**修改工作空间名称**：在build目录中找到CMakeCache.txt和Makefile，修改里面所有的文件夹名，重新编译即可。
+
 # 第 2 章 ROS通信机制
 
 ## 2.1 话题通信
@@ -580,7 +588,51 @@ int main(int argc, char *argv[])
 
 ## 2.4 常用命令
 
+# 第 3 章 ROS通信机制进阶
 
+## 3.2 ROS中的头文件与源文件
+
+本节主要介绍ROS的C++实现中，如何使用头文件与源文件的方式封装代码，具体内容如下:
+
+1. 设置头文件，可执行文件作为源文件；
+2. 分别设置头文件，源文件与可执行文件。
+
+在ROS中关于头文件的使用，核心内容在于CMakeLists.txt文件的配置，不同的封装方式，配置上也有差异。
+
+# 第 4 章 ROS运行管理
+
+## 4.1 ROS元功能包
+
+## 4.3 ROS工作空间覆盖
+
+有**隐患**，暂时没有补救措施，尽量避免。
+
+
+
+### 4.4.2 launch文件设置命名空间与重映射
+
+以turtlesim为例：
+
+#### 1.launch文件
+
+```xml
+<!-- 需要启动多个turtle GUI节点 -->
+<launch>
+	<node pkg="turtlesim" type="turtlesim_node" name="turtlesim"/>
+    <!-- 名称重映射 -->
+    <node pkg="turtlesim" type="turtlesim_node"  name="t1"/>
+    <!-- 命名空间 -->
+    <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" ns="t2" />
+    <!-- 命名空间 + 名称重映射 -->
+    <node pkg="turtlesim" type="turtlesim_node" name="t3" ns="melon"/>
+</launch>
+```
+
+### 4.4.3 编码设置命名空间与重映射
+
+
+
+## 4.2 ROS节点运行管理launch文件
 
 
 # 第10章 ROS进阶
